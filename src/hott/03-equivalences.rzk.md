@@ -941,6 +941,32 @@ dependent function types.
     Σ ( ( s',s) : product ( A' → B' ) ( A → B))
     , ( ( a' : A') → β ( s' a') = s ( α a'))
 
+#def identity-of-map
+  ( A' A : U)
+  ( α : A' → A)
+  : map-of-maps A' A α A' A α
+  := ((identity A', identity A), \ a' → refl)
+
+#def comp-maps-of-maps
+  ( A' A : U)
+  ( α : A' → A)
+  ( B' B : U)
+  ( β : B' → B)
+  ( C' C : U)
+  ( γ : C' → C)
+  ( ((t', t), second-square-commutes) : map-of-maps B' B β C' C γ)
+  ( ((s', s), first-square-commutes) : map-of-maps A' A α B' B β)
+  : map-of-maps A' A α C' C γ
+  :=
+  ( (comp A' B' C' t' s', comp A B C t s)
+    , \ a' →
+      ( concat C)
+      ( γ (comp A' B' C' t' s' a'))
+      ( t (β (s' a')))
+      ( comp A B C t s (α a'))
+      ( second-square-commutes (s' a'))
+      ( ap B C (β (s' a')) (s (α a')) t (first-square-commutes a')))
+
 #def Equiv-of-maps
   ( A' A : U)
   ( α : A' → A)

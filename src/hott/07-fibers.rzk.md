@@ -73,6 +73,127 @@ of the form `#!rzk (a, refl : f a = f a) : fib A B f`.
   := refl
 ```
 
+### Functoriality of fibers
+
+```rzk
+#def map-of-fibers-map-of-maps
+  ( A' A : U)
+  ( α : A' → A)
+  ( B' B : U)
+  ( β : B' → B)
+  ( ((s', s), square-commutes) : map-of-maps A' A α B' B β)
+  ( a : A)
+  : fib A' A α a → fib B' B β (s a)
+  :=
+  ( ind-fib A' A α)
+  ( \ x _ → fib B' B β (s x))
+  ( \ x' →  (s' x', square-commutes x'))
+  ( a)
+
+#def compute-map-of-fibers-map-of-maps
+  ( A' A : U)
+  ( α : A' → A)
+  ( B' B : U)
+  ( β : B' → B)
+  ( ((s', s), square-commutes) : map-of-maps A' A α B' B β)
+  ( a : A)
+  ( (a', p) : fib A' A α a)
+  : ( ( map-of-fibers-map-of-maps A' A α B' B β)
+      ( (s', s), square-commutes)
+      ( a)
+      ( a', p)
+    = ( s' a'
+      , ( concat B (β (s' a')) (s (α a')) (s a))
+        ( square-commutes a')
+        ( ap A B (α a') a s p)))
+  :=
+  ( ind-fib A' A α)
+  ( \ x (x', h) →
+    ( ( map-of-fibers-map-of-maps A' A α B' B β)
+      ( (s', s), square-commutes)
+      ( x)
+      ( x', h)
+    = ( s' x'
+      , ( concat B (β (s' x')) (s (α x')) (s x))
+        ( square-commutes x')
+        ( ap A B (α x') x s h))))
+  ( \ x' → refl )
+  ( a)
+  ( a', p)
+```
+
+Note that due to how `#!rzk ind-fib` is implemented,
+`#!rzk map-of-fibers-map-of-maps {-snip-} (α a') a' (a', refl)` is
+_definitionally_ equal to `#!rzk (s' a', square-commutes a')`, so we don't need
+`#!rzk compute-map-of-fibers-map-of-maps` in that case.
+
+```rzk
+#def homotopy-identity-of-fiber-identity-of-map
+  ( A' A : U)
+  ( α : A' → A)
+  ( a : A)
+  ( u : fib A' A α a)
+  : map-of-fibers-map-of-maps A' A α A' A α (identity-of-map A' A α) a u = u
+  :=
+  ( ind-fib A' A α)
+  ( \ x z →
+    map-of-fibers-map-of-maps A' A α A' A α (identity-of-map A' A α) x z = z)
+  ( ind-fib-computation A' A α (\ x _ → fib A' A α x) (\ x' →  (x', refl)))
+  ( a)
+  ( u)
+
+#def homotopy-comp-maps-of-fibers-comp-maps-of-maps
+  ( A' A : U)
+  ( α : A' → A)
+  ( B' B : U)
+  ( β : B' → B)
+  ( C' C : U)
+  ( γ : C' → C)
+  ( ((t', t), second-square-commutes) : map-of-maps B' B β C' C γ)
+  ( ((s', s), first-square-commutes) : map-of-maps A' A α B' B β)
+  ( a : A)
+  ( u : fib A' A α a)
+  : ( ( map-of-fibers-map-of-maps B' B β C' C γ)
+      ( (t', t), second-square-commutes)
+      ( s a)
+      ( ( map-of-fibers-map-of-maps A' A α B' B β)
+        ( (s', s), first-square-commutes)
+        ( a)
+        ( u))
+    = ( ( map-of-fibers-map-of-maps A' A α C' C γ)
+        ( ( comp-maps-of-maps A' A α B' B β C' C γ)
+          ( (t', t), second-square-commutes)
+          ( (s', s), first-square-commutes))
+        ( a)
+        ( u)))
+  :=
+  ( ind-fib A' A α)
+  ( \ x z →
+    ( ( map-of-fibers-map-of-maps B' B β C' C γ)
+      ( (t', t), second-square-commutes)
+      ( s x)
+      ( ( map-of-fibers-map-of-maps A' A α B' B β)
+        ( (s', s), first-square-commutes)
+        ( x)
+        ( z))
+    = ( ( map-of-fibers-map-of-maps A' A α C' C γ)
+        ( ( comp-maps-of-maps A' A α B' B β C' C γ)
+          ( (t', t), second-square-commutes)
+          ( (s', s), first-square-commutes))
+        ( x)
+        ( z))))
+  ( \ x' →
+    -- Here we only need one application of `compute-map-of-fibers-of-maps`
+    -- because of the definitional computation rule for
+    -- `map-of-fibers-map-of-maps {-snip-} (x', refl)` mentioned above.
+    ( ( compute-map-of-fibers-map-of-maps B' B β C' C γ)
+      ( (t', t), second-square-commutes)
+      ( s (α x'))
+      ( s' x', first-square-commutes x')))
+  ( a)
+  ( u)
+```
+
 ## Contractible maps
 
 A map is contractible just when its fibers are contractible.
