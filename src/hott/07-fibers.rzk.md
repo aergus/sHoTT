@@ -19,6 +19,24 @@ The homotopy fiber of a map is the following type:
   := Σ (a : A) , (f a) = b
 ```
 
+Every inhabitant of a fiber is transported from one of the form
+`#!rzk (a, refl : f a = f a) : fib A B f (f a)`:
+
+```rzk
+#def is-transported-fiber
+  ( A B : U)
+  ( f : A → B)
+  ( b : B)
+  ( (a, p) : fib A B f b)
+  : (a, p) =_{fib A B f b} transport B (fib A B f) (f a) b p (a, refl)
+  :=
+  ( ind-path B (f a))
+  ( \ y h → (a, h) =_{fib A B f y} transport B (fib A B f) (f a) y h (a, refl))
+  ( refl)
+  ( b)
+  ( p)
+```
+
 We calculate the transport of `#!rzk (a , q) : fib b` along `#!rzk p : a = a'`:
 
 ```rzk
@@ -128,21 +146,117 @@ _definitionally_ equal to `#!rzk (s' a', square-commutes a')`, so we don't need
 `#!rzk compute-map-of-fibers-map-of-maps` in that case.
 
 ```rzk
-#def homotopy-identity-of-fiber-identity-of-map
-  ( A' A : U)
-  ( α : A' → A)
+#section compute-map-of-fibers-homotopy-identity-of-map
+```
+
+Next, we compute the map induced by a map of maps whose components are homotopic
+to the respective identity maps.
+
+```rzk
+#variables A' A : U
+#variable α : A' → A
+#variable identity-A' : A' → A'
+#variable h-A' : homotopy A' A' identity-A' (identity A')
+#variable identity-A : A → A
+#variable h-A : homotopy A A identity-A (identity A)
+```
+
+As we will need it several times, we give a name to the witness of the
+commutativity of the square that corresponds the "identity map of `α`" defined
+by the data above.
+
+```rzk
+#def square-commutes-identity-of-map
+  : (a' : A') → α (identity-A' a') = identity-A (α a')
+  := second (homotopy-identity-of-map A' A α identity-A' h-A' identity-A h-A)
+```
+
+Now the actual computations:
+
+```rzk
+#def compute-transport-witness-homotopy-identity-of-map
+  ( a' : A')
+  : ( ( transport A' (\ x' → α x' = identity-A (α a')) (identity-A' a') a')
+      ( h-A' a')
+      ( square-commutes-identity-of-map a')
+    = ( rev A (identity-A (α a')) (α a') (h-A (α a'))))
+  :=
+  ( concat (α a' = identity-A (α a')))
+  ( ( transport A' (\ x' → α x' = identity-A (α a')) (identity-A' a') a')
+    ( h-A' a')
+    ( square-commutes-identity-of-map a'))
+  ( ( concat A  (α a') (α (identity-A' a')) (identity-A (α a')))
+    ( ap A' A a' (identity-A' a') α (rev A' (identity-A' a') a' (h-A' a')))
+    ( square-commutes-identity-of-map  a'))
+  ( rev A (identity-A (α a')) (α a') (h-A (α a')))
+  ( ( transport-in-fiber A' A α (identity-A (α a')) (identity-A' a') a')
+    ( square-commutes-identity-of-map a')
+    ( h-A' a'))
+  ( ( compute-concat-ap-rev-concat-ap A' A)
+    ( identity-A' a')
+    ( a')
+    ( identity-A (α a'))
+    ( α)
+    ( h-A' a')
+    ( rev A (identity-A (α a')) (α a') (h-A (α a'))))
+
+#def compute-map-of-fibers-standard-inhabitant-homotopy-identity-of-map
+  ( a' : A')
+  : ( ( map-of-fibers-map-of-maps A' A α A' A α)
+      ( homotopy-identity-of-map A' A α identity-A' h-A' identity-A h-A)
+      ( α a')
+      ( a', refl)
+    = ( a', rev A (identity-A (α a')) (α a') (h-A (α a'))))
+  :=
+  -- We can use `path-of-pairs-pair-of-paths` like this because
+  -- `map-of-fibers-map-of-maps {-snip-} (a', refl)` is definitionally equal to
+  -- `(identity-A' a', square-commutes-identity-of-map a')`.
+  ( path-of-pairs-pair-of-paths A' (\ x' → α x' = identity-A (α a')))
+  ( identity-A' a')
+  ( a')
+  ( h-A' a')
+  ( square-commutes-identity-of-map a')
+  ( rev A (identity-A (α a')) (α a') (h-A (α a')))
+  ( compute-transport-witness-homotopy-identity-of-map a')
+
+#def compute-map-of-fibers-homotopy-identity-of-map
   ( a : A)
   ( u : fib A' A α a)
-  : map-of-fibers-map-of-maps A' A α A' A α (identity-of-map A' A α) a u = u
+  : ( ( map-of-fibers-map-of-maps A' A α A' A α)
+      ( homotopy-identity-of-map A' A α identity-A' h-A' identity-A h-A)
+      ( a)
+      ( u)
+    = ( transport A (fib A' A α) a (identity-A a))
+      ( rev A (identity-A a) a (h-A a))
+      ( u))
   :=
   ( ind-fib A' A α)
   ( \ x z →
-    map-of-fibers-map-of-maps A' A α A' A α (identity-of-map A' A α) x z = z)
-  ( ind-fib-computation A' A α (\ x _ → fib A' A α x) (\ x' →  (x', refl)))
+    ( ( map-of-fibers-map-of-maps A' A α A' A α)
+      ( homotopy-identity-of-map A' A α identity-A' h-A' identity-A h-A)
+      ( x)
+      ( z)
+    = ( transport A (fib A' A α) x (identity-A x))
+      ( rev A (identity-A x) x (h-A x))
+      ( z)))
+  ( \ x' →
+    ( concat (fib A' A α (identity-A (α x'))))
+    ( identity-A' x', square-commutes-identity-of-map x')
+    ( x', rev A (identity-A (α x')) (α x') (h-A (α x')))
+    ( ( transport A (fib A' A α) (α x') (identity-A (α x')))
+      ( rev A (identity-A (α x')) (α x') (h-A (α x')))
+      ( (x', refl)))
+    ( compute-map-of-fibers-standard-inhabitant-homotopy-identity-of-map x')
+    ( ( is-transported-fiber A' A α (identity-A (α x')))
+      ( x', rev A (identity-A (α x')) (α x') (h-A (α x')))))
   ( a)
   ( u)
 
-#def homotopy-comp-maps-of-fibers-comp-maps-of-maps
+#end compute-map-of-fibers-homotopy-identity-of-map
+```
+
+```rzk
+#def comp-maps-of-fibers-comp-maps-of-maps
   ( A' A : U)
   ( α : A' → A)
   ( B' B : U)
@@ -185,7 +299,7 @@ _definitionally_ equal to `#!rzk (s' a', square-commutes a')`, so we don't need
   ( \ x' →
     -- Here we only need one application of `compute-map-of-fibers-of-maps`
     -- because of the definitional computation rule for
-    -- `map-of-fibers-map-of-maps {-snip-} (x', refl)` mentioned above.
+    -- `map-of-fibers-map-of-maps {-snip-} (x', refl)`.
     ( ( compute-map-of-fibers-map-of-maps B' B β C' C γ)
       ( (t', t), second-square-commutes)
       ( s (α x'))

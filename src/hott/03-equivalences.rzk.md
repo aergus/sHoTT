@@ -941,11 +941,20 @@ dependent function types.
     Σ ( ( s',s) : product ( A' → B' ) ( A → B))
     , ( ( a' : A') → β ( s' a') = s ( α a'))
 
-#def identity-of-map
+#def homotopy-identity-of-map
   ( A' A : U)
   ( α : A' → A)
+  ( identity-A' : A' → A')
+  ( h-A' : homotopy A' A' identity-A' (identity A'))
+  ( identity-A : A → A)
+  ( h-A : homotopy A A identity-A (identity A))
   : map-of-maps A' A α A' A α
-  := ((identity A', identity A), \ a' → refl)
+  :=
+  ( (identity-A', identity-A)
+  , \ a' →
+    ( concat A (α (identity-A' a')) (α a') (identity-A (α a')))
+    ( ap A' A (identity-A' a') a' α (h-A' a'))
+    ( rev A (identity-A (α a')) (α a') (h-A (α a'))))
 
 #def comp-maps-of-maps
   ( A' A : U)

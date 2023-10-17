@@ -497,7 +497,7 @@ The following needs to be outside the previous section because of the usage of
       ( p)
 ```
 
-The following is for a specific use.
+The following are needed for specific use cases.
 
 ```rzk
 #def concat-ap-rev-ap-id
@@ -523,6 +523,30 @@ The following is for a specific use.
       ( y)
       ( p)
 
+#def compute-concat-ap-rev-concat-ap
+  ( A B : U)
+  ( x y : A)
+  ( t : B)
+  ( f : A → B)
+  ( p : x = y)
+  ( q : f y = t)
+  : ( ( concat B (f y) (f x) t)
+      ( ap A B y x f (rev A x y p))
+      ( concat B (f x) (f y) t (ap A B x y f p) q)
+    = ( q))
+  :=
+  ( ind-path B (f y))
+  ( \ u h →
+    ( ( concat B (f y) (f x) u)
+          ( ap A B y x f (rev A x y p))
+          ( concat B (f x) (f y) u (ap A B x y f p) h)
+        = ( h)))
+  ( concat-ap-rev-ap-id A B x y f p)
+  ( t)
+  ( q)
+```
+
+```rzk
 #def ap-id
   ( A : U)
   ( x y : A)
